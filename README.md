@@ -6,7 +6,7 @@ Smart Street Lights Controller Using LDR
 </div>
 
 ### Instructed by:
-Sir Tehseen Ul Hasan Shah
+Syed Tehseen Ul Hasan Shah
 
 ### Group Members
 - Hamid Ali 
@@ -20,6 +20,13 @@ Sir Tehseen Ul Hasan Shah
 - LDR
 - Breadboard
 - Connecting Wires
+
+### Technical Details
+- AVR Programming (Arduino UNO) 
+- IOT Programming (NodeMCU esp32)
+- Database (ThingSpeak)
+- MQTT Server (broker.hivemq.com)
+- Mobile Control (MQTT Dashboard)
 
 <div align="center">
 <h4>

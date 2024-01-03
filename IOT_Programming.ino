@@ -13,12 +13,8 @@ const char *password = "11223344";
 long myChannelNumber = 2390848;
 const char *myWriteAPIKey = "QYFPMA31BRT11Z26";
 
-// long myChannelNumber = 2393185;
-// const char* myWriteAPIKey = "RJSFHETTAVCOKY24";
-
 // Details of MQTT Broker and topics
-// const char *mqttServer = "test.mosquitto.org";
-const char *mqttServer = "broker.hivemq.com";
+const char *mqttServer = "test.mosquitto.org";
 const int mqttPort = 1883;
 const char *mqttClientId = "2022CS80/device";
 const char *inTopic = "2022-CS-80/value";      // threshold value will be taken here
@@ -29,36 +25,23 @@ long currentTime, lastTime;
 int count = 0;
 char messages[50];
 
-WiFiClient thingSpeakClient;
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
-    // -----------------This function is now only printing the threshold value on Serial----------------------
-
     // This function will be called when a message is received on the subscribed topic
-    // Serial.print("Message received on topic: ");
-    // Serial.println(inTopic);
+    Serial.print("Message received on topic: ");
+    Serial.println(inTopic);
 
-    // Serial.print("Payload: ");
-    // for (int i = 0; i < length; i++)
-    // {
-    //     Serial.print((char)payload[i]);
-    // }
-    // Serial.println();
+    Serial.print("Payload: ");
+    for (int i = 0; i < length; i++)
+    {
+        Serial.print((char)payload[i]);
+    }
+    Serial.println();
 
-    // int receivedValue = 0;
-
-    char buffer[length + 1]; // Add one for the null terminator
-    memcpy(buffer, payload, length);
-    buffer[length] = '\0'; // Null-terminate the string
-
-    // Convert the payload to an integer
-    int receivedValue = atoi(buffer);
-
-    // Serial.print("Received Integer Value: ");
-    Serial2.println(receivedValue);
+    // Add your logic to process the received message here
 }
 
 void reconnect()
@@ -84,11 +67,9 @@ void reconnect()
         }
     }
 }
-
 void setup()
 {
     Serial.begin(115200);
-    Serial2.begin(115200);
 
     // Connect to Wi-Fi
     WiFi.begin(ssid, password);
@@ -98,27 +79,21 @@ void setup()
         Serial.println("Connecting to WiFi...");
     }
     Serial.println("Connected to WiFi");
-    ThingSpeak.begin(thingSpeakClient);
+    ThingSpeak.begin(espClient);
+
     // Setup MQTT Server
     client.setServer(mqttServer, mqttPort);
     client.setCallback(callback);
     client.subscribe(inTopic);
-
-    // Just connect it once
-    while (!client.connected())
-    {
-        reconnect();
-    }
 }
 
 void loop()
 {
+    if (!client.connected())
+    {
+        reconnect();
+    }
     client.loop();
-
-    // Check that, is value is given on TX
-    // count++;
-    // Serial.println(count);
-    // delay(1000);
 
     // Check if data is available on Serial
     if (Serial.available() > 0)
@@ -130,10 +105,7 @@ void loop()
         // 3. Publish it on MQTT broker
 
         int ldrValue = Serial.parseInt();
-        while (Serial.available() > 0)
-        {
-            Serial.read();
-        }
+
         // Print the received value on Serial Monitor
         Serial.println("Received LDR Value: " + String(ldrValue));
 
@@ -142,7 +114,8 @@ void loop()
 
         // Publish the Value on the MQTT Broker
         snprintf(messages, 10, "%ld", ldrValue);
-        // client.publish(outTopic, messages);
+        Serial.println(messages);
+        client.publish(outTopic, messages);
 
         // >>>>>>> This is logic to print integer in continuous loop
         // currentTime = millis();
@@ -156,16 +129,7 @@ void loop()
         //     lastTime = millis();
         // }
 
-        // delay(1000);      // Instead of delay we will use millis() function to check time, we should not halt the program
-
-        currentTime = millis();
-        if (currentTime - lastTime > 500)
-        {
-            snprintf(messages, 10, "%ld", ldrValue);
-            // Serial.print("Loop Executed ");
-            // Serial.println(messages);
-            client.publish(outTopic, messages);
-            lastTime = millis();
-        }
+        Serial.flush();
+        delay(1000); // Delay before sending the next data
     }
 }
